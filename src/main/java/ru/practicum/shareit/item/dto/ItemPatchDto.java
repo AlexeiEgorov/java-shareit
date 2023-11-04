@@ -1,14 +1,11 @@
-package ru.practicum.shareit.item.model;
+package ru.practicum.shareit.item.dto;
 
-
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
 @Setter
-@AllArgsConstructor
-public class Item {
+@Getter
+public class ItemPatchDto {
     private long id;
     private String name;
     private String description;
