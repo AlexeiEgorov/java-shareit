@@ -7,6 +7,7 @@ import ru.practicum.shareit.item.storage.ItemStorage;
 import ru.practicum.shareit.item.dto.ResponseItemDto;
 import ru.practicum.shareit.item.dto.ItemCreationDto;
 import ru.practicum.shareit.item.dto.ItemPatchDto;
+import ru.practicum.shareit.user.storage.UserStorage;
 
 import java.util.Collection;
 
@@ -15,11 +16,12 @@ import java.util.Collection;
 public class ItemServiceImpl implements ItemService {
     private final ValidationService validationService;
     private final ItemStorage itemStorage;
+    private final UserStorage userStorage;
 
     @Override
     public ItemCreationDto add(ItemCreationDto item, long ownerId) {
         validationService.checkUserRegistration(ownerId);
-        return itemStorage.add(item, ownerId);
+        return itemStorage.add(item, userStorage.getUser(ownerId));
     }
 
     @Override
@@ -39,7 +41,7 @@ public class ItemServiceImpl implements ItemService {
     public ResponseItemDto get(long userId, long id) {
         validationService.checkUserRegistration(userId);
         validationService.checkItemRegistration(id);
-        return itemStorage.find(id);
+        return itemStorage.get(id);
     }
 
     @Override

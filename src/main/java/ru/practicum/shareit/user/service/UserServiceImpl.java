@@ -41,7 +41,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseUserDto get(long id) {
         validationService.checkUserRegistration(id);
-        return userStorage.find(id);
+        return userStorage.get(id);
     }
 
     @Override

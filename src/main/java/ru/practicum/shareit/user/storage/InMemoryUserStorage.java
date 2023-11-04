@@ -48,7 +48,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public ResponseUserDto find(long id) {
+    public ResponseUserDto get(long id) {
         return mapper.toDto(users.get(id));
     }
 
@@ -70,5 +70,10 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public boolean containsUser(long id) {
         return users.containsKey(id);
+    }
+
+    @Override
+    public User getUser(long id) {
+        return users.get(id);
     }
 }

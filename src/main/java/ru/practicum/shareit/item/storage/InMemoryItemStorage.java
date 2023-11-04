@@ -6,6 +6,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.dto.ResponseItemDto;
 import ru.practicum.shareit.item.dto.ItemCreationDto;
 import ru.practicum.shareit.item.dto.ItemPatchDto;
+import ru.practicum.shareit.user.model.User;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,10 +20,11 @@ public class InMemoryItemStorage implements ItemStorage {
     private final ItemMapper mapper;
 
     @Override
-    public ItemCreationDto add(ItemCreationDto item, long ownerId) {
+    public ItemCreationDto add(ItemCreationDto item, User owner) {
         item.setId(nextItemId);
         Item created = mapper.toItem(item);
-        usersItems.get(ownerId).put(nextItemId, created);
+        created.setOwner(owner);
+        usersItems.get(owner.getId()).put(nextItemId, created);
         items.put(nextItemId++, created);
         return item;
     }
@@ -48,7 +50,7 @@ public class InMemoryItemStorage implements ItemStorage {
     }
 
     @Override
-    public ResponseItemDto find(long id) {
+    public ResponseItemDto get(long id) {
         return mapper.toDto(items.get(id));
     }
 
@@ -66,13 +68,11 @@ public class InMemoryItemStorage implements ItemStorage {
         String lText = text.toLowerCase();
         List<ResponseItemDto> found = new ArrayList<>();
 
-        for (Map<Long, Item> items : usersItems.values()) {
-            for (Item item : items.values()) {
-                if ((item.getName().toLowerCase().contains(lText)
-                        || item.getDescription().toLowerCase().contains(lText))
-                        && item.getAvailable()) {
-                    found.add(mapper.toDto(item));
-                }
+        for (Item item : items.values()) {
+            if ((item.getName().toLowerCase().contains(lText)
+                    || item.getDescription().toLowerCase().contains(lText))
+                    && item.getAvailable()) {
+                found.add(mapper.toDto(item));
             }
         }
         return found;

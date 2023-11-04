@@ -3,12 +3,13 @@ package ru.practicum.shareit.item.storage;
 import ru.practicum.shareit.item.dto.ItemCreationDto;
 import ru.practicum.shareit.item.dto.ItemPatchDto;
 import ru.practicum.shareit.item.dto.ResponseItemDto;
+import ru.practicum.shareit.user.model.User;
 
 import java.util.Collection;
 
 public interface ItemStorage {
 
-    ItemCreationDto add(ItemCreationDto user, long ownerId);
+    ItemCreationDto add(ItemCreationDto user, User owner);
 
     ResponseItemDto update(ItemPatchDto patch, long ownerId, long id);
 
@@ -16,7 +17,7 @@ public interface ItemStorage {
 
     void delete(long ownerId, long id);
 
-    ResponseItemDto find(long id);
+    ResponseItemDto get(long id);
 
     Collection<ResponseItemDto> findByText(String text);
 

@@ -13,6 +13,6 @@ class ItemMapper {
 
     public Item toItem(ItemCreationDto itemCreationDto) {
         return new Item(itemCreationDto.getId(), itemCreationDto.getName(), itemCreationDto.getDescription(),
-                itemCreationDto.getAvailable());
+                itemCreationDto.getAvailable(), null, null);
     }
 }

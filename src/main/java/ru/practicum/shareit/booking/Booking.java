@@ -1,20 +1,26 @@
 package ru.practicum.shareit.booking;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import ru.practicum.shareit.booking.model.Status;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.model.User;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * TODO Sprint add-bookings.
  */
-@Data
+
+@Setter
+@Getter
+@AllArgsConstructor
 public class Booking {
-    private final long id;
-    private final long ownerId;
-    private final long recipientId;
-    private final LocalDate from;
-    private LocalDate to;
-    private boolean confirmed;
-    private final int rate;
-    private final String commentary;
+    private long id;
+    private LocalDateTime start;
+    private LocalDateTime end;
+    private Item item;
+    private User booker;
+    private Status status;
 }

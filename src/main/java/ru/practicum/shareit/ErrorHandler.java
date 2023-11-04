@@ -44,7 +44,7 @@ public class ErrorHandler {
     public  ErrorResponse handleConflictException(EmailAlreadyRegisteredException e) {
         log.debug("Получен статус 409 Conflict; value:{}", e.getValue(), e);
         return new ErrorResponse(String.format("email - (%s)", e.getValue()),
-                    "Данный email уже зарегестрирован за другим пользователем");
+                "Данный email уже зарегестрирован за другим пользователем");
     }
 
     //@ExceptionHandler
