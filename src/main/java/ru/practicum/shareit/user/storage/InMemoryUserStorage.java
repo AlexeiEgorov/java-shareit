@@ -3,53 +3,41 @@ package ru.practicum.shareit.user.storage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.dto.ResponseUserDto;
-import ru.practicum.shareit.user.dto.UserCreationDto;
-import ru.practicum.shareit.user.dto.UserPatchDto;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
 public class InMemoryUserStorage implements UserStorage {
     private final Map<Long, User> users;
     private final Set<String> emails;
-    private long nextUserId = 1;
-    private final UserMapper mapper;
+    private Long nextUserId = 1L;
 
     @Override
-    public UserCreationDto add(UserCreationDto user) {
+    public Long add(User user) {
         user.setId(nextUserId);
         emails.add(user.getEmail());
-        users.put(nextUserId++, mapper.toUser(user));
-        return user;
+        users.put(nextUserId, user);
+        return nextUserId++;
     }
 
     @Override
-    public ResponseUserDto update(UserPatchDto patch, long id) {
-        User user = users.get(id);
-        if (patch.getName() != null && !patch.getName().isBlank()) {
-            user.setName(patch.getName());
-        }
-        if (patch.getEmail() != null  && !patch.getEmail().isBlank()) {
-            emails.remove(users.get(id).getEmail());
-            user.setEmail(patch.getEmail());
-            emails.add(patch.getEmail());
-        }
-        return mapper.toDto(user);
+    public void update(String oldEmail, String newEmail) {
+        emails.remove(oldEmail);
+        emails.add(newEmail);
     }
 
     @Override
-    public Collection<ResponseUserDto> getAll() {
-        return users.values().stream().map(mapper::toDto).collect(Collectors.toList());
+    public Collection<User> getAll() {
+        return users.values();
     }
 
     @Override
-    public ResponseUserDto get(long id) {
-        return mapper.toDto(users.get(id));
+    public Optional<User> get(long id) {
+        return Optional.ofNullable(users.get(id));
     }
 
     @Override
@@ -65,15 +53,5 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public String getUserEmail(long id) {
         return users.get(id).getEmail();
-    }
-
-    @Override
-    public boolean containsUser(long id) {
-        return users.containsKey(id);
-    }
-
-    @Override
-    public User getUser(long id) {
-        return users.get(id);
     }
 }

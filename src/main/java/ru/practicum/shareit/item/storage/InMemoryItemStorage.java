@@ -3,9 +3,6 @@ package ru.practicum.shareit.item.storage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.dto.ResponseItemDto;
-import ru.practicum.shareit.item.dto.ItemCreationDto;
-import ru.practicum.shareit.item.dto.ItemPatchDto;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.*;
@@ -16,88 +13,56 @@ import java.util.stream.Collectors;
 public class InMemoryItemStorage implements ItemStorage {
     private final Map<Long, Map<Long, Item>> usersItems;
     private final Map<Long, Item> items;
-    private long nextItemId = 1;
-    private final ItemMapper mapper;
+    private Long nextItemId = 1L;
 
     @Override
-    public ItemCreationDto add(ItemCreationDto item, User owner) {
+    public Long add(Item item, User owner) {
         item.setId(nextItemId);
-        Item created = mapper.toItem(item);
-        created.setOwner(owner);
-        usersItems.get(owner.getId()).put(nextItemId, created);
-        items.put(nextItemId++, created);
-        return item;
+        usersItems.get(item.getOwner().getId()).put(nextItemId, item);
+        items.put(nextItemId, item);
+        return nextItemId++;
     }
 
     @Override
-    public ResponseItemDto update(ItemPatchDto patch, long ownerId, long id) {
-        Item item = usersItems.get(ownerId).get(id);
-        if (patch.getName() != null && !patch.getName().isBlank()) {
-            item.setName(patch.getName());
-        }
-        if (patch.getDescription() != null && !patch.getDescription().isBlank()) {
-            item.setDescription(patch.getDescription());
-        }
-        if (patch.getAvailable() != null) {
-            item.setAvailable(patch.getAvailable());
-        }
-        return mapper.toDto(item);
+    public Collection<Item> getUserItems(Long ownerId) {
+        return usersItems.get(ownerId).values();
     }
 
     @Override
-    public Collection<ResponseItemDto> getUserItems(long ownerId) {
-        return usersItems.get(ownerId).values().stream().map(mapper::toDto).collect(Collectors.toList());
+    public Optional<Item> get(Long id) {
+        return Optional.ofNullable(items.get(id));
     }
 
     @Override
-    public ResponseItemDto get(long id) {
-        return mapper.toDto(items.get(id));
-    }
-
-    @Override
-    public void delete(long ownerId, long id) {
+    public void delete(Long ownerId, Long id) {
         items.remove(id);
         usersItems.get(ownerId).remove(id);
     }
 
     @Override
-    public Collection<ResponseItemDto> findByText(String text) {
-        if (text.isBlank()) {
-            return new ArrayList<>();
-        }
+    public Collection<Item> findByText(String text) {
         String lText = text.toLowerCase();
-        List<ResponseItemDto> found = new ArrayList<>();
 
-        for (Item item : items.values()) {
-            if ((item.getName().toLowerCase().contains(lText)
-                    || item.getDescription().toLowerCase().contains(lText))
-                    && item.getAvailable()) {
-                found.add(mapper.toDto(item));
-            }
-        }
-        return found;
+        return items.values().stream().filter(item -> (item.getName().toLowerCase().contains(lText)
+                || item.getDescription().toLowerCase().contains(lText))
+                && item.getAvailable()).collect(Collectors.toList());
     }
 
     @Override
-    public void addUserItems(long ownerId) {
+    public void addUserItems(Long ownerId) {
         usersItems.put(ownerId, new HashMap<>());
     }
 
     @Override
-    public boolean checkUserHasItem(long ownerId, long id) {
-        return usersItems.get(ownerId).containsKey(id);
-    }
-
-    @Override
-    public boolean containsItem(long id) {
-        return items.containsKey(id);
-    }
-
-    @Override
-    public void deleteAllUserItems(long ownerId) {
+    public void deleteAllUserItems(Long ownerId) {
         for (Item item : usersItems.get(ownerId).values()) {
             items.remove(item.getId());
         }
         usersItems.remove(ownerId);
+    }
+
+    @Override
+    public boolean checkUserHasItem(Long ownerId, Long id) {
+        return usersItems.get(ownerId).containsKey(id);
     }
 }

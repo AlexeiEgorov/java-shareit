@@ -1,31 +1,26 @@
 package ru.practicum.shareit.item.storage;
 
-import ru.practicum.shareit.item.dto.ItemCreationDto;
-import ru.practicum.shareit.item.dto.ItemPatchDto;
-import ru.practicum.shareit.item.dto.ResponseItemDto;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public interface ItemStorage {
 
-    ItemCreationDto add(ItemCreationDto user, User owner);
+    Long add(Item user, User owner);
 
-    ResponseItemDto update(ItemPatchDto patch, long ownerId, long id);
+    Collection<Item> getUserItems(Long ownerId);
 
-    Collection<ResponseItemDto> getUserItems(long ownerId);
+    void delete(Long ownerId, Long id);
 
-    void delete(long ownerId, long id);
+    Optional<Item> get(Long id);
 
-    ResponseItemDto get(long id);
+    Collection<Item> findByText(String text);
 
-    Collection<ResponseItemDto> findByText(String text);
+    void addUserItems(Long ownerId);
 
-    void addUserItems(long ownerId);
+    void deleteAllUserItems(Long ownerId);
 
-    boolean checkUserHasItem(long ownerId, long id);
-
-    boolean containsItem(long id);
-
-    void deleteAllUserItems(long ownerId);
+    boolean checkUserHasItem(Long ownerId, Long id);
 }
