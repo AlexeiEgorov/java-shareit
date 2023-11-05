@@ -12,7 +12,7 @@ import javax.validation.constraints.NotNull;
 @Setter
 @Getter
 public class ItemDto {
-    private long id;
+    private Long id;
     @NotBlank(message = "Имя не может быть пустым", groups = Marker.Create.class)
     private String name;
     @NotBlank(message = "Описание не может быть пустым", groups = Marker.Create.class)

@@ -60,9 +60,4 @@ public class InMemoryItemStorage implements ItemStorage {
         }
         usersItems.remove(ownerId);
     }
-
-    @Override
-    public boolean checkUserHasItem(Long ownerId, Long id) {
-        return usersItems.get(ownerId).containsKey(id);
-    }
 }

@@ -13,11 +13,11 @@ public interface UserStorage {
 
     Collection<User> getAll();
 
-    void delete(long id);
+    void delete(Long id);
 
-    Optional<User> get(long id);
+    Optional<User> get(Long id);
 
     boolean checkEmailExists(String email);
 
-    String getUserEmail(long id);
+    String getUserEmail(Long id);
 }

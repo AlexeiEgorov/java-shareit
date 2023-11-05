@@ -36,12 +36,12 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Optional<User> get(long id) {
+    public Optional<User> get(Long id) {
         return Optional.ofNullable(users.get(id));
     }
 
     @Override
-    public void delete(long id) {
+    public void delete(Long id) {
         emails.remove(users.remove(id).getEmail());
     }
 
@@ -51,7 +51,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public String getUserEmail(long id) {
+    public String getUserEmail(Long id) {
         return users.get(id).getEmail();
     }
 }

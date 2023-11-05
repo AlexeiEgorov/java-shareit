@@ -13,7 +13,7 @@ import javax.validation.constraints.NotEmpty;
 @Setter
 @Getter
 public class UserDto {
-    private long id;
+    private Long id;
     @NotBlank(message = "имя не может быть пустым", groups = Marker.Create.class)
     private String name;
     @NotEmpty(message = "email не может быть пустым", groups = Marker.Create.class)

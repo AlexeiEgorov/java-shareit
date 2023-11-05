@@ -21,6 +21,4 @@ public interface ItemStorage {
     void addUserItems(Long ownerId);
 
     void deleteAllUserItems(Long ownerId);
-
-    boolean checkUserHasItem(Long ownerId, Long id);
 }

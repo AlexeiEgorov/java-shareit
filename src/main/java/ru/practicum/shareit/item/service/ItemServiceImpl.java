@@ -34,7 +34,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto update(ItemDto patch, Long ownerId, Long id) {
         Item item = get(ownerId, id);
-        if (!itemStorage.checkUserHasItem(ownerId, id)) {
+        if (!(item.getOwner().getId().equals(ownerId))) {
             throw new EntityNotFoundException(ITEM, id);
         }
         if (patch.getName() != null && !patch.getName().isBlank()) {

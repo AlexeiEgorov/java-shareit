@@ -7,5 +7,5 @@ import lombok.Getter;
 @Getter
 public class EntityNotFoundException extends RuntimeException {
     private final String entityClass;
-    private final long value;
+    private final Long value;
 }
