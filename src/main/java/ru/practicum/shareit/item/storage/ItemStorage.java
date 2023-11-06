@@ -18,7 +18,5 @@ public interface ItemStorage {
 
     Collection<Item> findByText(String text);
 
-    void addUserItems(Long ownerId);
-
     void deleteAllUserItems(Long ownerId);
 }

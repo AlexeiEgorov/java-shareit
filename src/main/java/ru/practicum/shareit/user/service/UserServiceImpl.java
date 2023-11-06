@@ -5,15 +5,11 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.EmailAlreadyRegisteredException;
 import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.item.storage.ItemStorage;
-import ru.practicum.shareit.user.dto.ResponseUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.model.UserMapper;
 import ru.practicum.shareit.user.storage.UserStorage;
 
-import javax.validation.constraints.Email;
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.Constants.USER;
 
@@ -22,38 +18,30 @@ import static ru.practicum.shareit.Constants.USER;
 public class UserServiceImpl implements UserService {
     private final UserStorage userStorage;
     private final ItemStorage itemStorage;
-    private final UserMapper mapper;
 
     @Override
-    public Long add(UserDto user) {
+    public Long add(User user) {
         checkEmailAvailability(user.getEmail());
-        Long id = userStorage.add(mapper.toUser(user));
-        itemStorage.addUserItems(id);
-        return id;
+        return userStorage.add(user);
     }
 
     @Override
-    public UserDto update(UserDto patch, Long id) {
+    public User update(UserDto patch, Long id) {
         User user = get(id);
         if (patch.getName() != null && !patch.getName().isBlank()) {
             user.setName(patch.getName());
-        } else {
-            patch.setName(user.getName());
         }
         if (patch.getEmail() != null  && !patch.getEmail().isBlank()) {
             checkUpdatedEmailAvailability(patch, id);
             userStorage.update(user.getEmail(), patch.getEmail());
             user.setEmail(patch.getEmail());
-        } else {
-            patch.setEmail(user.getEmail());
         }
-        patch.setId(user.getId());
-        return patch;
+        return user;
     }
 
     @Override
-    public Collection<ResponseUserDto> getAll() {
-        return userStorage.getAll().stream().map(mapper::toDto).collect(Collectors.toList());
+    public Collection<User> getAll() {
+        return userStorage.getAll();
     }
 
     @Override
@@ -68,7 +56,7 @@ public class UserServiceImpl implements UserService {
         userStorage.delete(id);
     }
 
-    public void checkEmailAvailability(@Email String email) {
+    public void checkEmailAvailability(String email) {
         if (userStorage.checkEmailExists(email)) {
             throw new EmailAlreadyRegisteredException(email);
         }

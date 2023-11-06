@@ -18,14 +18,14 @@ public class InMemoryItemStorage implements ItemStorage {
     @Override
     public Long add(Item item, User owner) {
         item.setId(nextItemId);
-        usersItems.get(item.getOwner().getId()).put(nextItemId, item);
+        usersItems.computeIfAbsent(owner.getId(), k -> new HashMap<>()).put(nextItemId, item);
         items.put(nextItemId, item);
         return nextItemId++;
     }
 
     @Override
     public Collection<Item> getUserItems(Long ownerId) {
-        return usersItems.get(ownerId).values();
+        return new ArrayList<>(usersItems.getOrDefault(ownerId, Collections.emptyMap()).values());
     }
 
     @Override
@@ -49,15 +49,7 @@ public class InMemoryItemStorage implements ItemStorage {
     }
 
     @Override
-    public void addUserItems(Long ownerId) {
-        usersItems.put(ownerId, new HashMap<>());
-    }
-
-    @Override
     public void deleteAllUserItems(Long ownerId) {
-        for (Item item : usersItems.get(ownerId).values()) {
-            items.remove(item.getId());
-        }
         usersItems.remove(ownerId);
     }
 }

@@ -9,8 +9,8 @@ import ru.practicum.shareit.model.Marker;
 import ru.practicum.shareit.user.model.UserMapper;
 import ru.practicum.shareit.user.service.UserService;
 
-import javax.validation.Valid;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,21 +21,19 @@ public class UserController {
     private final UserMapper mapper;
 
     @PostMapping
-    @Validated(Marker.Create.class)
-    public UserDto add(@Valid @RequestBody UserDto user) {
-        user.setId(userService.add(user));
+    public UserDto add(@RequestBody @Validated(Marker.Create.class) UserDto user) {
+        user.setId(userService.add(mapper.toUser(user)));
         return user;
     }
 
     @PatchMapping("/{id}")
-    @Validated(Marker.Update.class)
-    public UserDto update(@Valid @RequestBody UserDto patch, @PathVariable Long id) {
-        return userService.update(patch, id);
+    public ResponseUserDto update(@RequestBody @Validated(Marker.Update.class) UserDto patch, @PathVariable Long id) {
+        return mapper.toDto(userService.update(patch, id));
     }
 
     @GetMapping
     public Collection<ResponseUserDto> getAll() {
-        return userService.getAll();
+        return userService.getAll().stream().map(mapper::toDto).collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")

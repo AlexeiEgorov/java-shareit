@@ -9,9 +9,9 @@ import ru.practicum.shareit.item.model.ItemMapper;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.model.Marker;
 
-import javax.validation.Valid;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.Constants.USER_ID_REQ_HEADER;
 
@@ -24,21 +24,21 @@ public class ItemController {
     private final ItemMapper mapper;
 
     @PostMapping
-    @Validated(Marker.Create.class)
-    public ItemDto add(@Valid @RequestBody ItemDto item, @RequestHeader(USER_ID_REQ_HEADER) Long ownerId) {
-        item.setId(itemService.add(item, ownerId));
+    public ItemDto add(@RequestBody @Validated(Marker.Create.class) ItemDto item,
+                       @RequestHeader(USER_ID_REQ_HEADER) Long ownerId) {
+        item.setId(itemService.add(mapper.toItem(item), ownerId));
         return item;
     }
 
     @PatchMapping("/{id}")
-    public ItemDto update(@Valid @RequestBody ItemDto patch,
-                                  @RequestHeader(USER_ID_REQ_HEADER) Long ownerId, @PathVariable Long id) {
-        return itemService.update(patch, ownerId, id);
+    public ResponseItemDto update(@RequestBody ItemDto patch,
+                          @RequestHeader(USER_ID_REQ_HEADER) Long ownerId, @PathVariable Long id) {
+        return mapper.toDto(itemService.update(patch, ownerId, id));
     }
 
     @GetMapping
     public Collection<ResponseItemDto> getUserItems(@RequestHeader(USER_ID_REQ_HEADER) Long ownerId) {
-        return itemService.getUserItems(ownerId);
+        return itemService.getUserItems(ownerId).stream().map(mapper::toDto).collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
@@ -57,7 +57,7 @@ public class ItemController {
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        return itemService.findByText(userId, text);
+        return itemService.findByText(userId, text).stream().map(mapper::toDto).collect(Collectors.toList());
     }
 
 }
