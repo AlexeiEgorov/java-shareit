@@ -1,7 +1,6 @@
 package ru.practicum.shareit.user.dto;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import ru.practicum.shareit.model.Marker;
 
@@ -9,7 +8,6 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 
-@RequiredArgsConstructor
 @Setter
 @Getter
 public class UserDto {
