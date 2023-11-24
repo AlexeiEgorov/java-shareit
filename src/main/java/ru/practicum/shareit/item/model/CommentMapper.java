@@ -1,17 +1,19 @@
 package ru.practicum.shareit.item.model;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.shareit.item.dto.CommentDto;
 
 import java.time.format.DateTimeFormatter;
 
+@UtilityClass
 public class CommentMapper {
-    public static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    private final DateTimeFormatter f = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
-    public static CommentDto toCommentDto(Comment comment) {
+    public CommentDto toCommentDto(Comment comment) {
         return CommentDto.builder()
                 .id(comment.getId())
                 .text(comment.getText())
-                .created(formatter.format(comment.getCreated()))
+                .created(f.format(comment.getCreated()))
                 .build();
     }
 }

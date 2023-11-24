@@ -3,14 +3,15 @@ package ru.practicum.shareit.item.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.exception.NotAllowedActionException;
 import ru.practicum.shareit.item.dto.BookingItemDto;
 import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.CommentTextDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Comment;
+import ru.practicum.shareit.item.model.CommentMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -20,10 +21,13 @@ import ru.practicum.shareit.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 import static ru.practicum.shareit.Constants.ITEM;
 import static ru.practicum.shareit.Constants.USER;
-import static ru.practicum.shareit.item.model.CommentMapper.toCommentDto;
 
 @Service
 @Transactional(readOnly = true)
@@ -97,23 +101,26 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public CommentDto addComment(Long userId, Long itemId, CommentDto commentDto) {
-        Booking booking = bookingRepository.findFirstByItemIdAndBookerIdAndEndBefore(itemId, userId, LocalDateTime.now())
-                .orElseThrow(() -> new NotAllowedActionException("Чтобы оставить комментарий, необходимо " +
-                        "завершить аренду предмета.", itemId.toString()));
+    public CommentDto addComment(Long userId, Long itemId, CommentTextDto textDto) {
+        if (!bookingRepository.existsFirstByItemIdAndBookerIdAndEndBefore(itemId, userId, LocalDateTime.now())) {
+                throw new NotAllowedActionException("Чтобы оставить комментарий, необходимо завершить аренду " +
+                        "предмета.", itemId.toString());
+        }
         Comment comment = Comment.builder()
-                .text(commentDto.getText())
-                .item(booking.getItem())
-                .author(booking.getBooker())
+                .text(textDto.getText())
+                .item(new Item(itemId, null, null, null, null, null))
+                .author(getUser(userId))
                 .created(LocalDateTime.now())
                 .build();
-        CommentDto created = toCommentDto(commentRepository.save(comment));
+        CommentDto created = CommentMapper.toCommentDto(commentRepository.save(comment));
         created.setAuthorName(comment.getAuthor().getName());
         return created;
     }
 
     @Override
-    public List<Comment> getCommentsByItemId(Long itemId) {
-        return commentRepository.findAllByItemId(itemId);
+    public Map<Long, List<Comment>> getCommentsByItemsIds(Set<Long> itemsIds) {
+        return commentRepository.findAllByItemIdIn(itemsIds)
+                .stream()
+                .collect(groupingBy(comment -> comment.getItem().getId(), toList()));
     }
 }
