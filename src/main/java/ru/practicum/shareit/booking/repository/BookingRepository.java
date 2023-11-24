@@ -1,26 +1,24 @@
 package ru.practicum.shareit.booking.repository;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
-@Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Modifying
     @Query("update Booking b SET status = ?1 where b.id = ?2")
     void changeStatus(Status status, Long id);
 
-    Collection<Booking> findAllByBookerIdAndStatusOrderByStartDesc(Long bookerId, Status status);
+    Collection<Booking> findAllByBookerIdAndStatus(Long bookerId, Status status, Sort start);
 
     Collection<Booking> findAllByBookerIdOrderByStartDesc(Long bookerId);
 
@@ -28,9 +26,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     Collection<Booking> findAllByItemIdInOrderByStartDesc(Set<Long> itemsIds);
 
-    List<Booking> findAllByItemIdOrderByStart(Long itemId);
+    List<Booking> findAllByItemIdIn(Set<Long> itemsIds, Sort start);
 
-    Optional<Booking> findFirstByItemIdAndBookerIdAndEndBefore(Long itemId, Long bookerId, LocalDateTime time);
+    boolean existsFirstByItemIdAndBookerIdAndEndBefore(Long itemId, Long bookerId, LocalDateTime time);
 
     Collection<Booking> findAllByBookerIdAndEndBeforeOrderByStartDesc(Long bookerId, LocalDateTime time);
 
