@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.ResponseBookingDto;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.item.dto.BookingItemDto;
 import ru.practicum.shareit.item.service.ItemService;
@@ -21,7 +22,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.Constants.USER_ID_REQ_HEADER;
-import static ru.practicum.shareit.booking.model.BookingMapper.toDto;
+import static ru.practicum.shareit.booking.model.BookingMapper.*;
+import static ru.practicum.shareit.item.model.BookingItemDtoMapper.*;
+import static ru.practicum.shareit.user.model.BookerDtoMapper.*;
 
 @RestController
 @AllArgsConstructor
@@ -36,8 +39,8 @@ public class BookingController {
                                   @RequestHeader(USER_ID_REQ_HEADER) Long userId) {
         Booking booking = service.add(bookingDto, userId);
         ResponseBookingDto resp = toDto(booking);
-        resp.setItem(new BookingItemDto(booking.getItem().getId(), booking.getItem().getName()));
-        resp.setBooker(new BookerDto(booking.getBooker().getId()));
+        resp.setItem(toBookingItemDto(booking));
+        resp.setBooker(toBookerDto(booking.getBooker()));
         return resp;
     }
 
@@ -46,8 +49,8 @@ public class BookingController {
                                     @RequestParam @NotNull Boolean approved) {
         Booking booking = service.approve(userId, bookingId, approved);
         ResponseBookingDto resp = toDto(booking);
-        resp.setItem(new BookingItemDto(booking.getItem().getId(), booking.getItem().getName()));
-        resp.setBooker(new BookerDto(booking.getBooker().getId()));
+        resp.setItem(toBookingItemDto(booking));
+        resp.setBooker(toBookerDto(booking.getBooker()));
         return resp;
     }
 
@@ -55,21 +58,21 @@ public class BookingController {
     public ResponseBookingDto getBooking(@RequestHeader(USER_ID_REQ_HEADER) Long userId, @PathVariable Long bookingId) {
         Booking booking = service.getBooking(userId, bookingId);
         ResponseBookingDto resp = toDto(booking);
-        resp.setItem(new BookingItemDto(booking.getItem().getId(), booking.getItem().getName()));
-        resp.setBooker(new BookerDto(booking.getBooker().getId()));
+        resp.setItem(toBookingItemDto(booking));
+        resp.setBooker(toBookerDto(booking.getBooker()));
         return resp;
     }
 
     @GetMapping
     public Collection<ResponseBookingDto> getUserBookings(@RequestHeader(USER_ID_REQ_HEADER) Long userId,
-                                                          @RequestParam(required = false, defaultValue = "ALL")
-                                                          String state) {
+                                                          @RequestParam(defaultValue = "ALL")
+                                                          State state) {
         BookerDto bookerDto = new BookerDto(userId);
 
         return service.getUserBookings(userId, state).stream().map(booking -> {
             final ResponseBookingDto newBooking = toDto(booking);
             newBooking.setBooker(bookerDto);
-            newBooking.setItem(new BookingItemDto(booking.getItem().getId(), booking.getItem().getName()));
+            newBooking.setItem(toBookingItemDto(booking));
             return newBooking;
         }).collect(Collectors.toList());
     }
@@ -77,8 +80,8 @@ public class BookingController {
     @GetMapping("/owner")
     @Transactional
     public Collection<ResponseBookingDto> getUserOwnItemsBookings(@RequestHeader(USER_ID_REQ_HEADER) Long ownerId,
-                                                          @RequestParam(required = false, defaultValue = "ALL")
-                                                          String state) {
+                                                          @RequestParam(defaultValue = "ALL")
+                                                          State state) {
         Map<Long, BookingItemDto> bookingItemsDtos = itemService.findBookingItemsByOwner(ownerId).stream()
                 .collect(Collectors.toMap(BookingItemDto::getId, Function.identity()));
         Collection<Booking> bookings = service.getOwnerItemsBookings(state, bookingItemsDtos.keySet());
@@ -91,7 +94,7 @@ public class BookingController {
 
         return bookings.stream().map(booking -> {
             final ResponseBookingDto newBooking = toDto(booking);
-            newBooking.setBooker(bookersDtos.get(booking.getBooker().getId()));
+            newBooking.setBooker(toBookerDto(booking.getBooker()));
             newBooking.setItem(bookingItemsDtos.get(booking.getItem().getId()));
             return newBooking;
         }).collect(Collectors.toList());

@@ -12,8 +12,7 @@ import ru.practicum.shareit.user.service.UserService;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import static ru.practicum.shareit.user.model.UserMapper.toDto;
-import static ru.practicum.shareit.user.model.UserMapper.toUser;
+import static ru.practicum.shareit.user.model.UserMapper.*;
 
 @RestController
 @RequiredArgsConstructor
