@@ -1,21 +1,21 @@
 package ru.practicum.shareit.item.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import ru.practicum.shareit.model.Marker;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+
+import static ru.practicum.shareit.Constants.TIME_FORMAT;
 
 @Getter
 @Setter
 @Builder
 public class CommentDto {
     private Long id;
-    @NotNull(message = "комментарий не может быть пустым", groups = Marker.Create.class)
-    @NotBlank(message = "комментарий не может быть пустым", groups = Marker.Create.class)
     private String text;
     private String authorName;
-    private String created;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = TIME_FORMAT)
+    private LocalDateTime created;
 }

@@ -1,16 +1,16 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.dto.InfoBookingDto;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.ConstraintViolationException;
 import ru.practicum.shareit.exception.EntityNotFoundException;
-import ru.practicum.shareit.exception.NotAllowedActionException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
@@ -19,6 +19,8 @@ import ru.practicum.shareit.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 import static ru.practicum.shareit.Constants.*;
 
 @Service
@@ -77,54 +79,51 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Collection<Booking> getUserBookings(Long userId, String state) {
+    public Collection<Booking> getUserBookings(Long userId, State state) {
         getUser(userId);
         LocalDateTime now = LocalDateTime.now();
 
-        switch (state.toLowerCase()) {
-            case "all":
+        switch (state) {
+            case ALL:
                 return repository.findAllByBookerIdOrderByStartDesc(userId);
-            case "current":
+            case CURRENT:
                 return repository.findCurrentBookings(userId, now);
-            case "future":
+            case FUTURE:
                 return repository.findAllByBookerIdAndStatusInOrderByStartDesc(userId, Status.WAITING, Status.APPROVED);
-            case "waiting":
-                return repository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING);
-            case "rejected":
-                return repository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED);
-            case "past":
-                return repository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, now);
+            case WAITING:
+                return repository.findAllByBookerIdAndStatus(userId, Status.WAITING, Sort.by(Sort.Direction.DESC,
+                        "start"));
+            case REJECTED:
+                return repository.findAllByBookerIdAndStatus(userId, Status.REJECTED, Sort.by(Sort.Direction.DESC,
+                    "start"));
             default:
-                throw new NotAllowedActionException("Unknown state: " + state, "");
+                return repository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, now);
         }
     }
 
     @Override
-    public Collection<Booking> getOwnerItemsBookings(String state, Set<Long> itemsIds) {
+    public Collection<Booking> getOwnerItemsBookings(State state, Set<Long> itemsIds) {
         LocalDateTime now = LocalDateTime.now();
 
-        switch (state.toLowerCase()) {
-            case "all":
+        switch (state) {
+            case ALL:
                 return repository.findAllByItemIdInOrderByStartDesc(itemsIds);
-            case "current":
+            case CURRENT:
                 return repository.findCurrentOwnerBookings(itemsIds, now);
-            case "future":
+            case FUTURE:
                 return repository.findAllByItemIdInAndStatusInOrderByStartDesc(itemsIds, Status.APPROVED,
                         Status.WAITING);
-            case "waiting":
+            case WAITING:
                 return repository.findAllByItemIdInAndStatusOrderByStartDesc(itemsIds, Status.WAITING);
-            case "rejected":
+            case REJECTED:
                 return repository.findAllByItemIdInAndStatusOrderByStartDesc(itemsIds, Status.REJECTED);
-            case "past":
-                return repository.findAllByItemIdInAndEndBeforeOrderByStartDesc(itemsIds, now);
             default:
-                throw new NotAllowedActionException("Unknown state: " + state, "");
+                return repository.findAllByItemIdInAndEndBeforeOrderByStartDesc(itemsIds, now);
         }
     }
 
     @Override
     public Item getItem(Long id) {
-        //getUser(userId);
         return itemRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(ITEM, id));
     }
 
@@ -139,32 +138,37 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Map<String, InfoBookingDto> findLastAndNextBookings(Long itemId) {
-        final List<Booking> bookings = repository.findAllByItemIdOrderByStart(itemId);
-        final Map<String, InfoBookingDto> lastAndNext = new HashMap<>();
+    public Map<Long, Map<String, Booking>> findLastAndNextBookings(Set<Long> itemsIds) {
+        Map<Long, List<Booking>> itemsBookings = repository.findAllByItemIdIn(itemsIds, Sort.by(Sort.Direction.ASC,
+                        "start"))
+                .stream()
+                .collect(groupingBy(booking -> booking.getItem().getId(), toList()));
+        final Map<Long, Map<String, Booking>> itemsLastAndNextBookings = new HashMap<>();
         final LocalDateTime now = LocalDateTime.now();
 
-        for (int i = bookings.size() - 1; i >= 0; i--) {
-            if (bookings.get(i).getEnd().isBefore(now)) {
-                lastAndNext.put("last", new InfoBookingDto(bookings.get(i).getId(),
-                        bookings.get(i).getBooker().getId()));
-                try {
-                    lastAndNext.put("next", new InfoBookingDto(bookings.get(i + 1).getId(),
-                            bookings.get(i + 1).getBooker().getId()));
-                } catch (IndexOutOfBoundsException ignored) {
-                    //
+        outer:
+        for (Map.Entry<Long, List<Booking>> e : itemsBookings.entrySet()) {
+            List<Booking> bookings = e.getValue();
+            Long item = e.getKey();
+            itemsLastAndNextBookings.put(item, new HashMap<>());
+
+            for (int i = bookings.size() - 1; i >= 0; i--) {
+                if (bookings.get(i).getEnd().isBefore(now)) {
+                    itemsLastAndNextBookings.get(item).put("last", bookings.get(i));
+                    try {
+                        itemsLastAndNextBookings.get(item).put("next", bookings.get(i + 1));
+                    } catch (IndexOutOfBoundsException ignored) {
+                    }
+                    continue outer;
                 }
-                return lastAndNext;
+            }
+            try {
+                if (bookings.get(0).getStart().isBefore(now)) {
+                    itemsLastAndNextBookings.get(item).put("last", bookings.get(0));
+                }
+            } catch (IndexOutOfBoundsException ignored) {
             }
         }
-        try {
-            if (bookings.get(0).getStart().isBefore(now)) {
-                lastAndNext.put("last", new InfoBookingDto(bookings.get(0).getId(),
-                        bookings.get(0).getBooker().getId()));
-            }
-        } catch (IndexOutOfBoundsException ignored) {
-            //
-        }
-        return lastAndNext;
+        return itemsLastAndNextBookings;
     }
 }
