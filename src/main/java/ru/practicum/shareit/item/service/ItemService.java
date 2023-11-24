@@ -4,11 +4,14 @@ import ru.practicum.shareit.item.dto.BookingItemDto;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Comment;
+import ru.practicum.shareit.item.dto.CommentTextDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public interface ItemService {
     Item save(Item item, Long ownerId);
@@ -27,7 +30,7 @@ public interface ItemService {
 
     Collection<BookingItemDto> findBookingItemsByOwner(Long ownerId);
 
-    CommentDto addComment(Long userId, Long itemId, CommentDto comment);
+    CommentDto addComment(Long userId, Long itemId, CommentTextDto textDto);
 
-    List<Comment> getCommentsByItemId(Long itemId);
+    Map<Long, List<Comment>> getCommentsByItemsIds(Set<Long> itemsIds);
 }
