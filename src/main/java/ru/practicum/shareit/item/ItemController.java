@@ -16,6 +16,7 @@ import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.model.Marker;
 
 import javax.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -39,7 +40,7 @@ public class ItemController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseItemDto update(@RequestBody ItemDto patch,
+    public ResponseItemDto update(@RequestBody @Validated(Marker.Update.class) ItemDto patch,
                           @RequestHeader(USER_ID_REQ_HEADER) Long ownerId, @PathVariable Long id) {
         return toDto(service.patch(patch, ownerId, id));
     }
@@ -100,15 +101,18 @@ public class ItemController {
     }
 
     private void loadWithLastAndNextBookings(List<ResponseItemDto> items, Set<Long> itemsIds) {
-        Map<Long, Map<String, Booking>> itemsLastAndNextBookings = bookingService.findLastAndNextBookings(itemsIds);
+        Map<Long, List<Booking>> itemsBookings = bookingService.findLastAndNextBookings(itemsIds);
+        final LocalDateTime now = LocalDateTime.now();
         for (ResponseItemDto item : items) {
-            try {
-                item.setLastBooking(toInfoBookingDto(itemsLastAndNextBookings.get(item.getId()).get("last")));
-            } catch (NullPointerException ignored) {
-            }
-            try {
-                item.setNextBooking(toInfoBookingDto(itemsLastAndNextBookings.get(item.getId()).get("next")));
-            } catch (NullPointerException ignored) {
+            Optional<Booking> last = itemsBookings.getOrDefault(item.getId(), List.of()).stream()
+                    .filter(b -> b.getStart().isBefore(now))
+                    .reduce((first, second) -> second);
+            if (last.isPresent()) {
+                item.setLastBooking(toInfoBookingDto(last.get()));
+                Optional<Booking> next = itemsBookings.get(item.getId()).stream()
+                        .filter(b -> b.getStart().isAfter(now))
+                        .findFirst();
+                next.ifPresent(b -> item.setNextBooking(toInfoBookingDto(b)));
             }
         }
     }
@@ -117,14 +121,11 @@ public class ItemController {
         Map<Long, List<Comment>> itemsComments = service.getCommentsByItemsIds(itemsIds);
         Map<Long, String> authorsNames = new HashMap<>();
         for (ResponseItemDto item : items) {
-            try {
-                for (Comment comment : itemsComments.get(item.getId())) {
-                    final CommentDto commentDto = toCommentDto(comment);
-                    commentDto.setAuthorName(authorsNames.computeIfAbsent(
-                            comment.getAuthor().getId(), k -> comment.getAuthor().getName()));
-                    item.getComments().add(commentDto);
-                }
-            } catch (NullPointerException ignored) {
+            for (Comment comment : itemsComments.getOrDefault(item.getId(), List.of())) {
+                final CommentDto commentDto = toCommentDto(comment);
+                commentDto.setAuthorName(authorsNames.computeIfAbsent(
+                        comment.getAuthor().getId(), k -> comment.getAuthor().getName()));
+                item.getComments().add(commentDto);
             }
         }
     }

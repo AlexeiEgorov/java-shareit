@@ -4,7 +4,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 
@@ -22,19 +21,19 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     Collection<Booking> findAllByBookerIdOrderByStartDesc(Long bookerId);
 
-    Collection<Booking> findAllByItemIdInAndStatusOrderByStartDesc(Set<Long> itemsIds, Status status);
-
-    Collection<Booking> findAllByItemIdInOrderByStartDesc(Set<Long> itemsIds);
-
     List<Booking> findAllByItemIdIn(Set<Long> itemsIds, Sort start);
 
     boolean existsFirstByItemIdAndBookerIdAndEndBefore(Long itemId, Long bookerId, LocalDateTime time);
 
     Collection<Booking> findAllByBookerIdAndEndBeforeOrderByStartDesc(Long bookerId, LocalDateTime time);
 
-    Collection<Booking> findAllByItemIdInAndEndBeforeOrderByStartDesc(Set<Long> itemsIds, LocalDateTime time);
+    @Query("select b from Booking b where b.item.owner.id = ?1 " +
+            "and b.end < ?2")
+    Collection<Booking> findOwnerPastBookings(Long userId, LocalDateTime time, Sort start);
 
-    Collection<Booking> findAllByItemIdInAndStatusInOrderByStartDesc(Set<Long> itemsIds, Status... statuses);
+    @Query("select b from Booking b where b.item.owner.id = ?1 " +
+            "and b.status in ?2")
+    Collection<Booking> findOwnerBookingsByStatuses(Long userId, Sort start, Status... statuses);
 
     Collection<Booking> findAllByBookerIdAndStatusInOrderByStartDesc(Long bookerId, Status... statuses);
 
@@ -43,11 +42,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "and ?2 between b.start and b.end ")
     Collection<Booking> findCurrentBookings(Long bookerId, LocalDateTime time);
 
-    @Query("select b from Booking b " +
-            "where b.item.id in :itemsIds " +
-            "and :time between b.start and b.end " +
-            "order by b.start desc")
-    Collection<Booking> findCurrentOwnerBookings(@Param("itemsIds") Set<Long> itemsIds,
-                                                 @Param("time") LocalDateTime time);
+    @Query("select b from Booking b where b.item.owner.id = ?1")
+    Collection<Booking> findOwnerBookings(Long userId, Sort start);
 
+    @Query("select b from Booking b where b.item.owner.id = ?1 " +
+            "and ?2 between b.start and b.end")
+    Collection<Booking> findOwnerCurrentBookings(Long userId, LocalDateTime time, Sort start);
 }

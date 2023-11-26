@@ -15,10 +15,12 @@ import javax.validation.constraints.Size;
 public class ItemDto {
     private Long id;
     @NotBlank(message = "Имя не может быть пустым", groups = Marker.Create.class)
-    @Size(max = 255, message = "название не может быть больше 255 символов")
+    @Size(max = 255, message = "название не может быть больше 255 символов", groups = {Marker.Create.class,
+            Marker.Update.class})
     private String name;
     @NotBlank(message = "Описание не может быть пустым", groups = Marker.Create.class)
-    @Size(max = 2048, message = "описание не может быть больше 2048 символов")
+    @Size(max = 2048, message = "описание не может быть больше 2048 символов", groups = {Marker.Create.class,
+            Marker.Update.class})
     private String description;
     @NotNull(message = "Необходимо указать доступен предмет или нет", groups = Marker.Create.class)
     private Boolean available;

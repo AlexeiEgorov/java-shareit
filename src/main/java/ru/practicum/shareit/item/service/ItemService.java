@@ -1,10 +1,9 @@
 package ru.practicum.shareit.item.service;
 
-import ru.practicum.shareit.item.dto.BookingItemDto;
 import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.CommentTextDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Comment;
-import ru.practicum.shareit.item.dto.CommentTextDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
@@ -27,8 +26,6 @@ public interface ItemService {
     Collection<Item> findByText(Long userId, String text);
 
     User getUser(Long userId);
-
-    Collection<BookingItemDto> findBookingItemsByOwner(Long ownerId);
 
     CommentDto addComment(Long userId, Long itemId, CommentTextDto textDto);
 

@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.exception.NotAllowedActionException;
-import ru.practicum.shareit.item.dto.BookingItemDto;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.CommentTextDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -91,12 +90,6 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public User getUser(Long userId) {
         return userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException(USER, userId));
-    }
-
-    @Override
-    public Collection<BookingItemDto> findBookingItemsByOwner(Long ownerId) {
-        getUser(ownerId);
-        return repository.findAlLByOwnerId(ownerId);
     }
 
     @Override

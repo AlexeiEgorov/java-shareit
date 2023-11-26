@@ -92,33 +92,36 @@ public class BookingServiceImpl implements BookingService {
                 return repository.findAllByBookerIdAndStatusInOrderByStartDesc(userId, Status.WAITING, Status.APPROVED);
             case WAITING:
                 return repository.findAllByBookerIdAndStatus(userId, Status.WAITING, Sort.by(Sort.Direction.DESC,
-                        "start"));
+                        SORT_START_PARAM));
             case REJECTED:
                 return repository.findAllByBookerIdAndStatus(userId, Status.REJECTED, Sort.by(Sort.Direction.DESC,
-                    "start"));
+                    SORT_START_PARAM));
             default:
                 return repository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, now);
         }
     }
 
     @Override
-    public Collection<Booking> getOwnerItemsBookings(State state, Set<Long> itemsIds) {
+    public Collection<Booking> getOwnerItemsBookings(Long userId, State state) {
+        getUser(userId);
         LocalDateTime now = LocalDateTime.now();
 
         switch (state) {
             case ALL:
-                return repository.findAllByItemIdInOrderByStartDesc(itemsIds);
+                return repository.findOwnerBookings(userId, Sort.by(Sort.Direction.DESC, SORT_START_PARAM));
             case CURRENT:
-                return repository.findCurrentOwnerBookings(itemsIds, now);
+                return repository.findOwnerCurrentBookings(userId, now, Sort.by(Sort.Direction.DESC, SORT_START_PARAM));
             case FUTURE:
-                return repository.findAllByItemIdInAndStatusInOrderByStartDesc(itemsIds, Status.APPROVED,
-                        Status.WAITING);
+                return repository.findOwnerBookingsByStatuses(userId, Sort.by(Sort.Direction.DESC, SORT_START_PARAM),
+                        Status.APPROVED, Status.WAITING);
             case WAITING:
-                return repository.findAllByItemIdInAndStatusOrderByStartDesc(itemsIds, Status.WAITING);
+                return repository.findOwnerBookingsByStatuses(userId, Sort.by(Sort.Direction.DESC, SORT_START_PARAM),
+                        Status.WAITING);
             case REJECTED:
-                return repository.findAllByItemIdInAndStatusOrderByStartDesc(itemsIds, Status.REJECTED);
+                return repository.findOwnerBookingsByStatuses(userId, Sort.by(Sort.Direction.DESC, SORT_START_PARAM),
+                        Status.REJECTED);
             default:
-                return repository.findAllByItemIdInAndEndBeforeOrderByStartDesc(itemsIds, now);
+                return repository.findOwnerPastBookings(userId, now, Sort.by(Sort.Direction.DESC, SORT_START_PARAM));
         }
     }
 
@@ -138,37 +141,9 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Map<Long, Map<String, Booking>> findLastAndNextBookings(Set<Long> itemsIds) {
-        Map<Long, List<Booking>> itemsBookings = repository.findAllByItemIdIn(itemsIds, Sort.by(Sort.Direction.ASC,
-                        "start"))
+    public Map<Long, List<Booking>> findLastAndNextBookings(Set<Long> itemsIds) {
+        return repository.findAllByItemIdIn(itemsIds, Sort.by(Sort.Direction.ASC, SORT_START_PARAM))
                 .stream()
                 .collect(groupingBy(booking -> booking.getItem().getId(), toList()));
-        final Map<Long, Map<String, Booking>> itemsLastAndNextBookings = new HashMap<>();
-        final LocalDateTime now = LocalDateTime.now();
-
-        outer:
-        for (Map.Entry<Long, List<Booking>> e : itemsBookings.entrySet()) {
-            List<Booking> bookings = e.getValue();
-            Long item = e.getKey();
-            itemsLastAndNextBookings.put(item, new HashMap<>());
-
-            for (int i = bookings.size() - 1; i >= 0; i--) {
-                if (bookings.get(i).getEnd().isBefore(now)) {
-                    itemsLastAndNextBookings.get(item).put("last", bookings.get(i));
-                    try {
-                        itemsLastAndNextBookings.get(item).put("next", bookings.get(i + 1));
-                    } catch (IndexOutOfBoundsException ignored) {
-                    }
-                    continue outer;
-                }
-            }
-            try {
-                if (bookings.get(0).getStart().isBefore(now)) {
-                    itemsLastAndNextBookings.get(item).put("last", bookings.get(0));
-                }
-            } catch (IndexOutOfBoundsException ignored) {
-            }
-        }
-        return itemsLastAndNextBookings;
     }
 }

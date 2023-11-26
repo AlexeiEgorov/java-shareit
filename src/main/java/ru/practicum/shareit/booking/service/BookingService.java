@@ -7,6 +7,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,7 +20,7 @@ public interface BookingService {
 
     Collection<Booking> getUserBookings(Long userId, State state);
 
-    Collection<Booking> getOwnerItemsBookings(State state, Set<Long> itemsIds);
+    Collection<Booking> getOwnerItemsBookings(Long userId, State state);
 
     Item getItem(Long itemId);
 
@@ -27,5 +28,5 @@ public interface BookingService {
 
     Booking get(Long id);
 
-    Map<Long, Map<String, Booking>> findLastAndNextBookings(Set<Long> itemsIds);
+    Map<Long, List<Booking>> findLastAndNextBookings(Set<Long> itemsIds);
 }
