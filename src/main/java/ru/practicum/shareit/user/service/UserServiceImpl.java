@@ -2,73 +2,62 @@ package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exception.EmailAlreadyRegisteredException;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.EntityNotFoundException;
-import ru.practicum.shareit.item.storage.ItemStorage;
+import ru.practicum.shareit.user.dto.BookerDto;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.storage.UserStorage;
 
 import java.util.Collection;
+import java.util.Set;
 
 import static ru.practicum.shareit.Constants.USER;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final UserStorage userStorage;
-    private final ItemStorage itemStorage;
+    private final UserRepository repository;
 
     @Override
-    public Long add(User user) {
-        checkEmailAvailability(user.getEmail());
-        return userStorage.add(user);
+    @Transactional
+    public User save(User user) {
+        return repository.save(user);
     }
 
     @Override
-    public User update(UserDto patch, Long id) {
-        User user = get(id);
-        if (patch.getName() != null && !patch.getName().isBlank()) {
-            user.setName(patch.getName());
+    @Transactional
+    public User patch(UserDto user, Long id) {
+        User patched = get(id);
+        if (user.getEmail() != null && !user.getEmail().isBlank()) {
+            patched.setEmail(user.getEmail());
         }
-        if (patch.getEmail() != null  && !patch.getEmail().isBlank()) {
-            checkUpdatedEmailAvailability(patch, id);
-            userStorage.update(user.getEmail(), patch.getEmail());
-            user.setEmail(patch.getEmail());
+        if (user.getName() != null && !user.getName().isBlank()) {
+            patched.setName(user.getName());
         }
-        return user;
+        return repository.save(patched);
     }
 
     @Override
     public Collection<User> getAll() {
-        return userStorage.getAll();
+        return repository.findAll();
     }
 
     @Override
     public User get(Long id) {
-        return userStorage.get(id).orElseThrow(() -> new EntityNotFoundException(USER, id));
+        return repository.findById(id).orElseThrow(() -> new EntityNotFoundException(USER, id));
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         get(id);
-        itemStorage.deleteAllUserItems(id);
-        userStorage.delete(id);
+        repository.deleteById(id);
     }
 
-    public void checkEmailAvailability(String email) {
-        if (userStorage.checkEmailExists(email)) {
-            throw new EmailAlreadyRegisteredException(email);
-        }
-    }
-
-    public void checkUpdatedEmailAvailability(UserDto patch, Long userId) {
-        if (patch.getEmail() != null) {
-            if (userStorage.checkEmailExists(patch.getEmail())) {
-                if (!userStorage.getUserEmail(userId).equals(patch.getEmail())) {
-                    throw new EmailAlreadyRegisteredException(patch.getEmail());
-                }
-            }
-        }
+    @Override
+    public Collection<BookerDto> findBookers(Set<Long> usersIds) {
+        return repository.findAllByIdIn(usersIds);
     }
 }
