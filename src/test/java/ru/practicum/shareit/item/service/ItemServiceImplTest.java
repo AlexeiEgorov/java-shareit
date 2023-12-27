@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.exception.NotAllowedActionException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.CommentTextDto;
@@ -23,19 +24,22 @@ import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 
 class ItemServiceImplTest {
     private final ItemService itemService;
     final User user;
     final ItemRequest itemRequest;
+    private final ItemRepository mockItemRepository;
+    final Item itemWithoutReq;
 
     public ItemServiceImplTest() {
         UserRepository userRepositoryMock = Mockito.mock(UserRepository.class);
         BookingRepository bookingRepositoryMock = Mockito.mock(BookingRepository.class);
         CommentRepository commentRepositoryMock = Mockito.mock(CommentRepository.class);
         ItemRequestRepository itemRequestRepositoryMock = Mockito.mock(ItemRequestRepository.class);
-        ItemRepository mockItemRepository = Mockito.mock(ItemRepository.class);
+        this.mockItemRepository = Mockito.mock(ItemRepository.class);
         itemService = new ItemServiceImpl(mockItemRepository, userRepositoryMock, bookingRepositoryMock,
                 commentRepositoryMock, itemRequestRepositoryMock);
 
@@ -44,6 +48,10 @@ class ItemServiceImplTest {
         user.setName("elliot");
         user.setEmail("go@gmail.com");
         itemRequest = new ItemRequest(1L, "req", user, LocalDateTime.MIN, List.of());
+
+        itemWithoutReq = new Item();
+        itemWithoutReq.setOwner(user);
+        itemWithoutReq.setName("geyser");
         Mockito
                 .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(user));
@@ -65,6 +73,9 @@ class ItemServiceImplTest {
         Mockito
                 .when(commentRepositoryMock.save(any(Comment.class)))
                 .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0, Comment.class));
+        Mockito
+                .when(mockItemRepository.findById(anyLong()))
+                .thenReturn(Optional.of(itemWithoutReq));
     }
 
     @Test
@@ -84,6 +95,17 @@ class ItemServiceImplTest {
 
         assertThat(itemService.save(itemDtoWithReq, 1L), equalTo(itemWithReq));
         assertThat(itemService.save(itemDtoWithoutReq, 1L), equalTo(itemWithoutReq));
+    }
+
+    @Test
+    void patch() {
+        final ItemDto itemDtoWithoutReq = new ItemDto();
+        itemDtoWithoutReq.setName("geyser");
+        final Item itemWithoutReq = new Item();
+        itemWithoutReq.setOwner(user);
+        itemWithoutReq.setName("geyser");
+
+        assertThrows(EntityNotFoundException.class, () -> itemService.patch(itemDtoWithoutReq, 2L, 1L));
     }
 
     @Test

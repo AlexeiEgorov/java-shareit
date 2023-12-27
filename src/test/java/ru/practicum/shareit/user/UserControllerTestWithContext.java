@@ -52,6 +52,14 @@ class UserControllerTestWithContext {
 
     @Test
     void saveNewUser() throws Exception {
+
+        mvc.perform(post("/users")
+                        .content(mapper.writeValueAsString(userDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
         Mockito.when(userService.save(any())).thenReturn(user);
 
         mvc.perform(post("/users")

@@ -20,6 +20,12 @@ class UserServiceImplTest {
         UserDto userDto = new UserDto();
         userDto.setEmail("g@mail.com");
         userDto.setName("lester");
+        UserDto userDto2 = new UserDto();
+        userDto2.setEmail("  ");
+        userDto2.setName("  ");
+        UserDto userDto3 = new UserDto();
+        userDto3.setEmail(null);
+        userDto3.setName(null);
         User user = new User();
         user.setId(1L);
         user.setName("elliot");
@@ -36,5 +42,7 @@ class UserServiceImplTest {
                 .when(mockUserRepository.save(Mockito.any(User.class)))
                 .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0, User.class));
         assertThat(userService.patch(userDto, 1L), equalTo(updated));
+        assertThat(userService.patch(userDto2, 1L), equalTo(user));
+        assertThat(userService.patch(userDto3, 1L), equalTo(user));
     }
 }
