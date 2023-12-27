@@ -24,4 +24,5 @@ public class ItemDto {
     private String description;
     @NotNull(message = "Необходимо указать доступен предмет или нет", groups = Marker.Create.class)
     private Boolean available;
+    private Long requestId;
 }

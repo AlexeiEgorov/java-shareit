@@ -1,6 +1,8 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.repository.BookingRepository;
@@ -14,19 +16,20 @@ import ru.practicum.shareit.item.model.CommentMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.ItemRequestRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
-import static ru.practicum.shareit.Constants.ITEM;
-import static ru.practicum.shareit.Constants.USER;
+import static ru.practicum.shareit.Constants.*;
+import static ru.practicum.shareit.item.model.ItemMapper.*;
 
 @Service
 @Transactional(readOnly = true)
@@ -36,12 +39,16 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Override
     @Transactional
-    public Item save(Item item, Long ownerId) {
-        User owner = getUser(ownerId);
-        item.setOwner(owner);
+    public Item save(ItemDto itemDto, Long ownerId) {
+        Item item = toItem(itemDto);
+        item.setOwner(getUser(ownerId));
+        if (itemDto.getRequestId() != null) {
+            item.setRequest(getItemRequest(itemDto.getRequestId()));
+        }
         return repository.save(item);
     }
 
@@ -65,9 +72,10 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<Item> getUserItems(Long ownerId) {
+    public Page<Item> getUserItems(Long ownerId, Integer from, Integer size) {
         getUser(ownerId);
-        return repository.findAllByOwnerId(ownerId);
+        PageRequest pageRequest = PageRequest.of(from > 0 ? from / size : 0, size);
+        return repository.findAllByOwnerId(ownerId, pageRequest);
     }
 
     @Override
@@ -82,14 +90,21 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<Item> findByText(Long userId, String text) {
+    public Page<Item> findByText(Long userId, String text, Integer from, Integer size) {
         getUser(userId);
-        return repository.findItemsByText("%" + text.toUpperCase() + "%");
+        PageRequest pageRequest = PageRequest.of(from > 0 ? from / size : 0, size);
+        return repository.findItemsByText("%" + text.toUpperCase() + "%", pageRequest);
     }
 
     @Override
     public User getUser(Long userId) {
         return userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException(USER, userId));
+    }
+
+    @Override
+    public ItemRequest getItemRequest(Long requestId) {
+        return itemRequestRepository.findById(requestId).orElseThrow(() -> new EntityNotFoundException(REQUEST,
+                requestId));
     }
 
     @Override
@@ -115,5 +130,10 @@ public class ItemServiceImpl implements ItemService {
         return commentRepository.findAllByItemIdIn(itemsIds)
                 .stream()
                 .collect(groupingBy(comment -> comment.getItem().getId(), toList()));
+    }
+
+    @Override
+    public List<Item> findItemsByRequestsIds(Set<Long> requestsIds) {
+        return repository.findAllByRequestIdIn(requestsIds);
     }
 }

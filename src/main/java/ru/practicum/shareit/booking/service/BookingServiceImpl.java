@@ -1,6 +1,8 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +19,9 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
@@ -79,49 +83,50 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Collection<Booking> getUserBookings(Long userId, State state) {
+    public Page<Booking> getUserBookings(Long userId, State state, Integer from, Integer size) {
         getUser(userId);
+        PageRequest pageRequest = PageRequest.of(from > 0 ? from / size : 0, size,
+                Sort.by(SORT_START_PARAM).descending());
         LocalDateTime now = LocalDateTime.now();
 
         switch (state) {
             case ALL:
-                return repository.findAllByBookerIdOrderByStartDesc(userId);
+                return repository.findAllByBookerId(userId, pageRequest);
             case CURRENT:
-                return repository.findCurrentBookings(userId, now);
+                pageRequest = PageRequest.of(from > 0 ? from / size : 0, size);
+                return repository.findCurrentBookings(userId, now, pageRequest);
             case FUTURE:
-                return repository.findAllByBookerIdAndStatusInOrderByStartDesc(userId, Status.WAITING, Status.APPROVED);
+                return repository.findAllByBookerIdAndStatusIn(userId, pageRequest, Status.WAITING, Status.APPROVED);
             case WAITING:
-                return repository.findAllByBookerIdAndStatus(userId, Status.WAITING, Sort.by(Sort.Direction.DESC,
-                        SORT_START_PARAM));
+                return repository.findAllByBookerIdAndStatus(userId, Status.WAITING, pageRequest);
             case REJECTED:
-                return repository.findAllByBookerIdAndStatus(userId, Status.REJECTED, Sort.by(Sort.Direction.DESC,
-                    SORT_START_PARAM));
+                return repository.findAllByBookerIdAndStatus(userId, Status.REJECTED, pageRequest);
             default:
-                return repository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, now);
+                return repository.findAllByBookerIdAndEndBefore(userId, now, pageRequest);
         }
     }
 
     @Override
-    public Collection<Booking> getOwnerItemsBookings(Long userId, State state) {
+    public Page<Booking> getOwnerItemsBookings(Long userId, State state, Integer from, Integer size) {
         getUser(userId);
-        LocalDateTime now = LocalDateTime.now();
 
+        LocalDateTime now = LocalDateTime.now();
+        PageRequest pageRequest = PageRequest.of(from > 0 ? from / size : 0, size,
+                Sort.by(SORT_START_PARAM).descending());
         switch (state) {
             case ALL:
-                return repository.findOwnerBookings(userId, Sort.by(Sort.Direction.DESC, SORT_START_PARAM));
+                return repository.findOwnerBookings(userId, pageRequest);
             case CURRENT:
-                return repository.findOwnerCurrentBookings(userId, now, Sort.by(Sort.Direction.DESC, SORT_START_PARAM));
+                return repository.findOwnerCurrentBookings(userId, now, pageRequest);
             case FUTURE:
-                return repository.findOwnerBookingsByStatuses(userId, Sort.by(Sort.Direction.DESC, SORT_START_PARAM),
+                return repository.findOwnerBookingsByStatuses(userId, pageRequest,
                         Status.APPROVED, Status.WAITING);
             case WAITING:
-                return repository.findOwnerBookingsByStatuses(userId, Sort.by(Sort.Direction.DESC, SORT_START_PARAM),
-                        Status.WAITING);
+                return repository.findOwnerBookingsByStatuses(userId, pageRequest, Status.WAITING);
             case REJECTED:
-                return repository.findOwnerBookingsByStatuses(userId, Sort.by(Sort.Direction.DESC, SORT_START_PARAM),
-                        Status.REJECTED);
+                return repository.findOwnerBookingsByStatuses(userId, pageRequest, Status.REJECTED);
             default:
-                return repository.findOwnerPastBookings(userId, now, Sort.by(Sort.Direction.DESC, SORT_START_PARAM));
+                return repository.findOwnerPastBookings(userId, now, pageRequest);
         }
     }
 
@@ -142,7 +147,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Map<Long, List<Booking>> findLastAndNextBookings(Set<Long> itemsIds) {
-        return repository.findAllByItemIdIn(itemsIds, Sort.by(Sort.Direction.ASC, SORT_START_PARAM))
+        return repository.findAllByItemIdIn(itemsIds, Sort.by(SORT_START_PARAM).ascending())
                 .stream()
                 .collect(groupingBy(booking -> booking.getItem().getId(), toList()));
     }

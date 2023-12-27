@@ -96,6 +96,9 @@ public class ErrorHandler {
         } else if (NO_ACCESS.equals(e.getEntityClass())) {
             return new ErrorResponse(String.format("id - (%s)", e.getValue()),
                     "Доступ к предмету с данным id, недоступен");
+        } else if (REQUEST.equals(e.getEntityClass())) {
+            return new ErrorResponse(String.format("id - (%s)", e.getValue()),
+                    "Запрос с данным id, не зарегестрирован");
         }
         return new ErrorResponse((String.format("объект (%s); значение (%s)", e.getEntityClass(), e.getValue())),
                 "неизвестная ошибка");
