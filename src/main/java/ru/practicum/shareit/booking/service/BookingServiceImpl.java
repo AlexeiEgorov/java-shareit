@@ -38,10 +38,6 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public Booking add(BookingDto bookingDto, Long userId) {
-        if (!bookingDto.getEnd().isAfter(bookingDto.getStart())) {
-            throw new ConstraintViolationException("Дата окончания должна быть после начала: ",
-                    String.format("start: %s ; end: %s", bookingDto.getStart(), bookingDto.getEnd()));
-        }
         Item item = getItem(bookingDto.getItemId());
         if (!item.getAvailable()) {
             throw new ConstraintViolationException("Предмет в данный момент недоступен", item.getId().toString());

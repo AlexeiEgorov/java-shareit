@@ -1,6 +1,5 @@
 package ru.practicum.shareit.booking;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -9,6 +8,7 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.ResponseBookingDto;
 import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.model.Status;
+import ru.practicum.shareit.exception.ConstraintViolationException;
 import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.item.dto.BookingItemDto;
 import ru.practicum.shareit.item.model.Item;
@@ -22,6 +22,7 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static ru.practicum.shareit.Constants.FORMATTER;
 
 @Transactional
@@ -46,6 +47,49 @@ class BookingControllerTest {
         this.user2 = new User();
         user.setName("Thorin");
         user.setEmail("northernfell@vostok.ru");
+    }
+
+    @Test
+    void add() {
+        User savedUser = userRepository.save(user);
+        User savedUser2 = userRepository.save(user2);
+        Item item = new Item();
+        item.setOwner(savedUser);
+        item.setName("Gears");
+        item.setAvailable(false);
+        Item item2 = new Item();
+        item2.setOwner(savedUser2);
+        item2.setName("Gears");
+        item2.setAvailable(true);
+        item = itemRepository.save(item);
+        item2 = itemRepository.save(item2);
+        LocalDateTime start = LocalDateTime.now().plusDays(1);
+        LocalDateTime end = LocalDateTime.now().plusDays(2);
+        BookingDto bookingDto = new BookingDto(null, start, end, item.getId());
+        BookingDto bookingDto2 = new BookingDto(null, start, end, item2.getId());
+        assertThrows(ConstraintViolationException.class, () -> controller.add(bookingDto, savedUser2.getId()));
+        assertThrows(EntityNotFoundException.class, () -> controller.add(bookingDto2, savedUser2.getId()));
+    }
+
+    @Test
+    void approve() {
+        User savedUser = userRepository.save(user);
+        User savedUser2 = userRepository.save(user2);
+        Item item = new Item();
+        item.setOwner(savedUser);
+        item.setName("Gears");
+        item.setAvailable(true);
+        item = itemRepository.save(item);
+        LocalDateTime start = LocalDateTime.now().plusDays(1);
+        LocalDateTime end = LocalDateTime.now().plusDays(2);
+        BookingDto bookingDto = new BookingDto(null, start, end, item.getId());
+        ResponseBookingDto resp = controller.add(bookingDto, savedUser2.getId());
+
+        assertThrows(EntityNotFoundException.class, () -> controller.approve(savedUser2.getId(), resp.getId(),
+                true));
+        controller.approve(savedUser.getId(), resp.getId(), true);
+        assertThrows(ConstraintViolationException.class, () -> controller.approve(savedUser.getId(), resp.getId(),
+                true));
     }
 
     @Test
@@ -134,8 +178,8 @@ class BookingControllerTest {
         LocalDateTime start = LocalDateTime.now().plusDays(1);
         LocalDateTime end = LocalDateTime.now().plusDays(2);
         BookingDto bookingDto = new BookingDto(null, start, end, item.getId());
-        controller.add(bookingDto, savedUser2.getId());
-        Assertions.assertThrows(EntityNotFoundException.class, () -> controller.getBooking(user.getId(),
-                savedUser3.getId()));
+        ResponseBookingDto resp = controller.add(bookingDto, savedUser2.getId());
+        assertThrows(EntityNotFoundException.class, () -> controller.getBooking(savedUser3.getId(), resp.getId()));
+        assertThat(controller.getBooking(savedUser2.getId(), resp.getId()), equalTo(resp));
     }
 }
