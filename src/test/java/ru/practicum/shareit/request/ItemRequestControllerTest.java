@@ -66,4 +66,21 @@ class ItemRequestControllerTest {
                 resp.getId())));
         assertThat(controller.getAllNonOwnedRequests(created.getId(), 0, 10), equalTo(List.of(resp)));
     }
+
+    @Test
+    void getUserRequests() {
+        User created = userRepository.save(user);
+        User created2 = userRepository.save(user2);
+        ItemRequestDto req = new ItemRequestDto();
+        req.setDescription("Green sea-dragon egg");
+        ItemRequestResponseDto resp = controller.add(created2.getId(), req);
+        Item item = new Item();
+        item.setOwner(created);
+        item.setRequest(service.get(created2.getId(), resp.getId()));
+        item.setName("Green sea-dragon egg with red fern patterns");
+        Item createdItem = itemRepository.save(item);
+        resp.setItems(List.of(new ItemForRequestDto(createdItem.getId(), item.getName(), null, null,
+                resp.getId())));
+        assertThat(controller.getUserRequests(created2.getId()), equalTo(List.of(resp)));
+    }
 }

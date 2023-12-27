@@ -8,9 +8,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.dto.ItemRequestResponseDto;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.service.ItemRequestService;
 
 import java.nio.charset.StandardCharsets;
@@ -54,5 +57,21 @@ class ItemRequestControllerTestWithContext {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void get() throws Exception {
+        ItemRequest itemRequest = new ItemRequest(1L, requestDto.getDescription(), null, null,
+                null);
+        Mockito.when(service.get(anyLong(), anyLong())).thenReturn(itemRequest);
+        ItemRequestResponseDto resp = new ItemRequestResponseDto(1L, requestDto.getDescription(), null);
+
+        mvc.perform(MockMvcRequestBuilders.get("/requests/1")
+                        .content(mapper.writeValueAsString(requestDto))
+                        .header("X-Sharer-User-Id", 1L)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 }
