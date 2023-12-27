@@ -81,7 +81,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Page<Booking> getUserBookings(Long userId, State state, Integer from, Integer size) {
         getUser(userId);
-        PageRequest pageRequest = PageRequest.of(from > 0 ? from / size : 0, size,
+        PageRequest pageRequest = PageRequest.of(from / size, size,
                 Sort.by(SORT_START_PARAM).descending());
         LocalDateTime now = LocalDateTime.now();
 
@@ -89,7 +89,7 @@ public class BookingServiceImpl implements BookingService {
             case ALL:
                 return repository.findAllByBookerId(userId, pageRequest);
             case CURRENT:
-                pageRequest = PageRequest.of(from > 0 ? from / size : 0, size);
+                pageRequest = PageRequest.of(from / size, size);
                 return repository.findCurrentBookings(userId, now, pageRequest);
             case FUTURE:
                 return repository.findAllByBookerIdAndStatusIn(userId, pageRequest, Status.WAITING, Status.APPROVED);
@@ -107,7 +107,7 @@ public class BookingServiceImpl implements BookingService {
         getUser(userId);
 
         LocalDateTime now = LocalDateTime.now();
-        PageRequest pageRequest = PageRequest.of(from > 0 ? from / size : 0, size,
+        PageRequest pageRequest = PageRequest.of(from / size, size,
                 Sort.by(SORT_START_PARAM).descending());
         switch (state) {
             case ALL:

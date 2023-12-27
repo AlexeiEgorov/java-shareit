@@ -45,7 +45,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public Page<ItemRequest> getAllNonOwnedRequests(Long userId, Integer from, Integer size) {
         getUser(userId);
-        PageRequest pageRequest = PageRequest.of(from > 0 ? from / size : 0, size,
+        PageRequest pageRequest = PageRequest.of(from / size, size,
                 Sort.by(SORT_CREATED_PARAM).descending());
         return repository.findAllByRequesterIdIsNot(userId, pageRequest);
     }

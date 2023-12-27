@@ -43,6 +43,16 @@ class BookingControllerTestWithContext {
 
     @Test
     void saveNewBooking() throws Exception {
+        BookingDto bookingDto2 = new BookingDto(1L, null,
+                LocalDateTime.now().plusDays(2), 1L);
+        mvc.perform(post("/bookings")
+                        .content(mapper.writeValueAsString(bookingDto2))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .header("X-Sharer-User-Id", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
         Mockito.when(bookingService.getUserBookings(anyLong(), eq(null), anyInt(), anyInt()))
                 .thenThrow(ConstraintViolationException.class);
 

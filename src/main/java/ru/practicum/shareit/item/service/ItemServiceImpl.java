@@ -74,7 +74,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Page<Item> getUserItems(Long ownerId, Integer from, Integer size) {
         getUser(ownerId);
-        PageRequest pageRequest = PageRequest.of(from > 0 ? from / size : 0, size);
+        PageRequest pageRequest = PageRequest.of(from / size, size);
         return repository.findAllByOwnerId(ownerId, pageRequest);
     }
 
@@ -92,7 +92,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Page<Item> findByText(Long userId, String text, Integer from, Integer size) {
         getUser(userId);
-        PageRequest pageRequest = PageRequest.of(from > 0 ? from / size : 0, size);
+        PageRequest pageRequest = PageRequest.of(from / size, size);
         return repository.findItemsByText("%" + text.toUpperCase() + "%", pageRequest);
     }
 
