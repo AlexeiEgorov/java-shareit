@@ -87,9 +87,12 @@ class BookingControllerTest {
 
         assertThrows(EntityNotFoundException.class, () -> controller.approve(savedUser2.getId(), resp.getId(),
                 true));
+        controller.approve(savedUser.getId(), resp.getId(), false);
         controller.approve(savedUser.getId(), resp.getId(), true);
+
         assertThrows(ConstraintViolationException.class, () -> controller.approve(savedUser.getId(), resp.getId(),
                 true));
+
     }
 
     @Test
@@ -181,5 +184,6 @@ class BookingControllerTest {
         ResponseBookingDto resp = controller.add(bookingDto, savedUser2.getId());
         assertThrows(EntityNotFoundException.class, () -> controller.getBooking(savedUser3.getId(), resp.getId()));
         assertThat(controller.getBooking(savedUser2.getId(), resp.getId()), equalTo(resp));
+        assertThat(controller.getBooking(savedUser.getId(), resp.getId()), equalTo(resp));
     }
 }

@@ -1,6 +1,5 @@
 package ru.practicum.shareit.item.service;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import ru.practicum.shareit.booking.repository.BookingRepository;
@@ -33,12 +32,14 @@ class ItemServiceImplTest {
     final ItemRequest itemRequest;
     private final ItemRepository mockItemRepository;
     final Item itemWithoutReq;
+    private final ItemRequestRepository itemRequestRepositoryMock;
+    private final UserRepository userRepositoryMock;
 
     public ItemServiceImplTest() {
-        UserRepository userRepositoryMock = Mockito.mock(UserRepository.class);
+        this.userRepositoryMock = Mockito.mock(UserRepository.class);
         BookingRepository bookingRepositoryMock = Mockito.mock(BookingRepository.class);
         CommentRepository commentRepositoryMock = Mockito.mock(CommentRepository.class);
-        ItemRequestRepository itemRequestRepositoryMock = Mockito.mock(ItemRequestRepository.class);
+        this.itemRequestRepositoryMock = Mockito.mock(ItemRequestRepository.class);
         this.mockItemRepository = Mockito.mock(ItemRepository.class);
         itemService = new ItemServiceImpl(mockItemRepository, userRepositoryMock, bookingRepositoryMock,
                 commentRepositoryMock, itemRequestRepositoryMock);
@@ -98,14 +99,41 @@ class ItemServiceImplTest {
     }
 
     @Test
+    void getsGetsGetsComingThrough() {
+        Mockito
+                .when(itemRequestRepositoryMock.findById(anyLong()))
+                .thenReturn(Optional.empty());
+
+        Mockito
+                .when(userRepositoryMock.findById(anyLong()))
+                .thenReturn(Optional.empty());
+
+        Mockito
+                .when(mockItemRepository.findById(anyLong()))
+                .thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> itemService.get(1L));
+        assertThrows(EntityNotFoundException.class, () -> itemService.getUser(1L));
+        assertThrows(EntityNotFoundException.class, () -> itemService.getItemRequest(1L));
+    }
+
+    @Test
     void patch() {
         final ItemDto itemDtoWithoutReq = new ItemDto();
         itemDtoWithoutReq.setName("geyser");
+        final ItemDto itemDtoWithoutReq2 = new ItemDto();
+        itemDtoWithoutReq2.setName("   ");
+        itemDtoWithoutReq2.setDescription("   ");
+        final ItemDto itemDtoWithoutReq3 = new ItemDto();
+        itemDtoWithoutReq3.setName(null);
+        itemDtoWithoutReq3.setDescription(null);
         final Item itemWithoutReq = new Item();
         itemWithoutReq.setOwner(user);
         itemWithoutReq.setName("geyser");
 
         assertThrows(EntityNotFoundException.class, () -> itemService.patch(itemDtoWithoutReq, 2L, 1L));
+        assertThat(itemService.patch(itemDtoWithoutReq2, 1L, 1L), equalTo(itemWithoutReq));
+        assertThat(itemService.patch(itemDtoWithoutReq3, 1L, 1L), equalTo(itemWithoutReq));
     }
 
     @Test
@@ -120,7 +148,7 @@ class ItemServiceImplTest {
                 .build();
 
         assertThat(created, equalTo(commentDto));
-        Assertions.assertThrows(NotAllowedActionException.class, () -> itemService.addComment(1L, 2L,
+        assertThrows(NotAllowedActionException.class, () -> itemService.addComment(1L, 2L,
                 textDto));
     }
 }
