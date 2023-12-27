@@ -13,6 +13,7 @@ import ru.practicum.shareit.item.dto.ResponseItemDto;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
+import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -37,13 +38,17 @@ class ItemControllerTest {
     private final User user2;
     private final ItemDto itemDto;
     private final ItemDto itemDto2;
+    private final ItemRepository repository;
 
     @Autowired
-    public ItemControllerTest(ItemController controller, UserRepository userRepository, BookingRepository bookingRepository, CommentRepository commentRepository) {
+    public ItemControllerTest(ItemController controller, UserRepository userRepository,
+                              BookingRepository bookingRepository, CommentRepository commentRepository,
+                              ItemRepository repository) {
         this.controller = controller;
         this.userRepository = userRepository;
         this.bookingRepository = bookingRepository;
         this.commentRepository = commentRepository;
+        this.repository = repository;
         this.user = new User();
         this.user2 = new User();
         this.itemDto = new ItemDto();

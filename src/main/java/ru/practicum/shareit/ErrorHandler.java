@@ -16,6 +16,7 @@ import ru.practicum.shareit.model.Violation;
 
 import javax.validation.ConstraintViolationException;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.Constants.*;
@@ -65,14 +66,9 @@ public class ErrorHandler {
 
         } else if (e instanceof MethodArgumentTypeMismatchException) {
             MethodArgumentTypeMismatchException exp = (MethodArgumentTypeMismatchException) e;
-            try {
-                String[] className = exp.getRootCause().getMessage().split("\\.");
-                if (className[className.length - 2].equalsIgnoreCase(STATE)) {
-                    return new ErrorResponse("Unknown state: " + className[className.length - 1], exp.getMessage());
-                }
-            } catch (NullPointerException ex) {
-                return new ErrorResponse(exp.toString(), "возникла непредвиденная ошибка ограничения " +
-                        "переданного параметра");
+            String[] className = Objects.requireNonNull(exp.getRootCause()).getMessage().split("\\.");
+            if (className[className.length - 2].equalsIgnoreCase(STATE)) {
+                return new ErrorResponse("Unknown state: " + className[className.length - 1], exp.getMessage());
             }
         }
         return new ErrorResponse(e.toString(), "возникла непредвиденная ошибка ограничения " +
