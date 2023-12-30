@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static ru.practicum.shareit.Constants.USER;
 
 @WebMvcTest(controllers = UserController.class)
-class UserControllerTestWithContext {
+class ContextUserControllerTest {
 
     private final ObjectMapper mapper;
     @MockBean
@@ -35,7 +35,7 @@ class UserControllerTestWithContext {
     private final User user;
 
     @Autowired
-    public UserControllerTestWithContext(ObjectMapper mapper, UserService userService, MockMvc mvc) {
+    public ContextUserControllerTest(ObjectMapper mapper, UserService userService, MockMvc mvc) {
         this.mapper = mapper;
         this.userService = userService;
         this.mvc = mvc;

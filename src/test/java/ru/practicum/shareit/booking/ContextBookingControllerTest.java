@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static ru.practicum.shareit.Constants.*;
 
 @WebMvcTest(controllers = BookingController.class)
-class BookingControllerTestWithContext {
+class ContextBookingControllerTest {
 
     private final ObjectMapper mapper;
     @MockBean
@@ -33,7 +33,7 @@ class BookingControllerTestWithContext {
     private final BookingDto bookingDto;
 
     @Autowired
-    public BookingControllerTestWithContext(ObjectMapper mapper, BookingService bookingService, MockMvc mvc) {
+    public ContextBookingControllerTest(ObjectMapper mapper, BookingService bookingService, MockMvc mvc) {
         this.mapper = mapper;
         this.bookingService = bookingService;
         this.mvc = mvc;

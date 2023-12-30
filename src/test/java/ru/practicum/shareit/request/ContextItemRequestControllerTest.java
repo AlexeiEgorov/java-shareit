@@ -29,7 +29,7 @@ import static ru.practicum.shareit.Constants.REQUEST;
 import static ru.practicum.shareit.Constants.USER_ID_REQ_HEADER;
 
 @WebMvcTest(controllers = ItemRequestController.class)
-class ItemRequestControllerTestWithContext {
+class ContextItemRequestControllerTest {
 
     private final ObjectMapper mapper;
     @MockBean
@@ -40,7 +40,7 @@ class ItemRequestControllerTestWithContext {
     private final ItemRequestDto requestDto;
 
     @Autowired
-    public ItemRequestControllerTestWithContext(ObjectMapper mapper, ItemRequestService service, MockMvc mvc,
+    public ContextItemRequestControllerTest(ObjectMapper mapper, ItemRequestService service, MockMvc mvc,
                                                 ItemService itemService) {
         this.mapper = mapper;
         this.service = service;
