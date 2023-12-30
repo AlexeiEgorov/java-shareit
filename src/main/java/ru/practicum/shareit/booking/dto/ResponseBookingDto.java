@@ -1,8 +1,6 @@
 package ru.practicum.shareit.booking.dto;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.item.dto.BookingItemDto;
 import ru.practicum.shareit.user.dto.BookerDto;
@@ -10,6 +8,7 @@ import ru.practicum.shareit.user.dto.BookerDto;
 @Setter
 @Getter
 @RequiredArgsConstructor
+@EqualsAndHashCode
 public class ResponseBookingDto {
     private final Long id;
     private final String start;

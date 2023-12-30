@@ -10,6 +10,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Entity
 @Table(name = "users")
+@EqualsAndHashCode
 public class User {
     @Id
     @Access(AccessType.PROPERTY)

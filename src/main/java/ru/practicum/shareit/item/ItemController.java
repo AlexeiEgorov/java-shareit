@@ -4,24 +4,26 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingMapper;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.CommentTextDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ResponseItemDto;
 import ru.practicum.shareit.item.model.Comment;
-import ru.practicum.shareit.item.dto.CommentTextDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.ItemMapper;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.model.Marker;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.Constants.USER_ID_REQ_HEADER;
-import static ru.practicum.shareit.booking.model.BookingInfoMapper.*;
 import static ru.practicum.shareit.item.model.CommentMapper.*;
 import static ru.practicum.shareit.item.model.ItemMapper.*;
 
@@ -36,7 +38,7 @@ public class ItemController {
     @PostMapping
     public ResponseItemDto add(@RequestBody @Validated(Marker.Create.class) ItemDto item,
                        @RequestHeader(USER_ID_REQ_HEADER) Long ownerId) {
-        return toDto(service.save(toItem(item), ownerId));
+        return toDto(service.save(item, ownerId));
     }
 
     @PatchMapping("/{id}")
@@ -46,8 +48,10 @@ public class ItemController {
     }
 
     @GetMapping
-    public Collection<ResponseItemDto> getUserItems(@RequestHeader(USER_ID_REQ_HEADER) Long ownerId) {
-        List<ResponseItemDto> items = service.getUserItems(ownerId)
+    public Collection<ResponseItemDto> getUserItems(@RequestHeader(USER_ID_REQ_HEADER) Long ownerId,
+                                                    @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                                                    @RequestParam(defaultValue = "10") @Positive Integer size) {
+        List<ResponseItemDto> items = service.getUserItems(ownerId, from, size)
                 .stream()
                 .map(ItemMapper::toDto)
                 .sorted(Comparator.comparing(i -> {
@@ -87,11 +91,14 @@ public class ItemController {
 
     @GetMapping("/search")
     public Collection<ResponseItemDto> findByText(@RequestHeader(USER_ID_REQ_HEADER) Long userId,
-                                                  @RequestParam String text) {
+                                                  @RequestParam String text,
+                                                  @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                                                  @RequestParam(defaultValue = "10") @Positive  Integer size) {
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        return service.findByText(userId, text).stream().map(ItemMapper::toDto).collect(Collectors.toList());
+        return service.findByText(userId, text, from, size).stream().map(ItemMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @PostMapping("/{itemId}/comment")
@@ -105,14 +112,14 @@ public class ItemController {
         final LocalDateTime now = LocalDateTime.now();
         for (ResponseItemDto item : items) {
             Optional<Booking> last = itemsBookings.getOrDefault(item.getId(), List.of()).stream()
-                    .filter(b -> b.getStart().isBefore(now))
+                    .filter(b -> !b.getStart().isAfter(now))
                     .reduce((first, second) -> second);
             if (last.isPresent()) {
-                item.setLastBooking(toInfoBookingDto(last.get()));
+                item.setLastBooking(BookingMapper.toInfoBookingDto(last.get()));
                 Optional<Booking> next = itemsBookings.get(item.getId()).stream()
                         .filter(b -> b.getStart().isAfter(now))
                         .findFirst();
-                next.ifPresent(b -> item.setNextBooking(toInfoBookingDto(b)));
+                next.ifPresent(b -> item.setNextBooking(BookingMapper.toInfoBookingDto(b)));
             }
         }
     }

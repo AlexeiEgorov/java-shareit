@@ -1,12 +1,12 @@
 package ru.practicum.shareit.booking.service;
 
+import org.springframework.data.domain.Page;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,9 +18,9 @@ public interface BookingService {
 
     Booking getBooking(Long userId, Long id);
 
-    Collection<Booking> getUserBookings(Long userId, State state);
+    Page<Booking> getUserBookings(Long userId, State state, Integer from, Integer size);
 
-    Collection<Booking> getOwnerItemsBookings(Long userId, State state);
+    Page<Booking> getOwnerItemsBookings(Long userId, State state, Integer from, Integer size);
 
     Item getItem(Long itemId);
 
