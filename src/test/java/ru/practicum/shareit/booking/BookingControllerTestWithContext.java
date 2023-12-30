@@ -21,11 +21,10 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static ru.practicum.shareit.Constants.BOOKING;
-import static ru.practicum.shareit.Constants.NO_ACCESS;
+import static ru.practicum.shareit.Constants.*;
 
 @WebMvcTest(controllers = BookingController.class)
-class ContextBookingControllerTest {
+class BookingControllerTestWithContext {
 
     private final ObjectMapper mapper;
     @MockBean
@@ -34,7 +33,7 @@ class ContextBookingControllerTest {
     private final BookingDto bookingDto;
 
     @Autowired
-    public ContextBookingControllerTest(ObjectMapper mapper, BookingService bookingService, MockMvc mvc) {
+    public BookingControllerTestWithContext(ObjectMapper mapper, BookingService bookingService, MockMvc mvc) {
         this.mapper = mapper;
         this.bookingService = bookingService;
         this.mvc = mvc;
@@ -48,7 +47,7 @@ class ContextBookingControllerTest {
         mvc.perform(post("/bookings")
                         .content(mapper.writeValueAsString(bookingDto2))
                         .characterEncoding(StandardCharsets.UTF_8)
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USER_ID_REQ_HEADER, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
@@ -58,7 +57,7 @@ class ContextBookingControllerTest {
         mvc.perform(post("/bookings")
                         .content(mapper.writeValueAsString(bookingDto3))
                         .characterEncoding(StandardCharsets.UTF_8)
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USER_ID_REQ_HEADER, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
@@ -69,7 +68,7 @@ class ContextBookingControllerTest {
         mvc.perform(get("/bookings")
                         .param("state", "null")
                         .characterEncoding(StandardCharsets.UTF_8)
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USER_ID_REQ_HEADER, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
@@ -79,7 +78,7 @@ class ContextBookingControllerTest {
         mvc.perform(post("/bookings")
                         .content(mapper.writeValueAsString(bookingDto))
                         .characterEncoding(StandardCharsets.UTF_8)
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USER_ID_REQ_HEADER, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
@@ -89,7 +88,7 @@ class ContextBookingControllerTest {
         mvc.perform(post("/bookings")
                         .content(mapper.writeValueAsString(bookingDto))
                         .characterEncoding(StandardCharsets.UTF_8)
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USER_ID_REQ_HEADER, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
@@ -102,7 +101,7 @@ class ContextBookingControllerTest {
 
         mvc.perform(get("/bookings/1")
                         .characterEncoding(StandardCharsets.UTF_8)
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USER_ID_REQ_HEADER, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
@@ -112,7 +111,7 @@ class ContextBookingControllerTest {
         mvc.perform(post("/bookings")
                         .content(mapper.writeValueAsString(bookingDto))
                         .characterEncoding(StandardCharsets.UTF_8)
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USER_ID_REQ_HEADER, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
@@ -122,7 +121,7 @@ class ContextBookingControllerTest {
         mvc.perform(post("/bookings")
                         .content(mapper.writeValueAsString(bookingDto))
                         .characterEncoding(StandardCharsets.UTF_8)
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USER_ID_REQ_HEADER, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
@@ -136,7 +135,7 @@ class ContextBookingControllerTest {
 
         mvc.perform(get("/bookings/1")
                         .characterEncoding(StandardCharsets.UTF_8)
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USER_ID_REQ_HEADER, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict());

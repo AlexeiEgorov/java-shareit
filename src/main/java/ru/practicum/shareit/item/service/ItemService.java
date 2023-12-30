@@ -21,15 +21,11 @@ public interface ItemService {
 
     Item patch(ItemDto patch, Long ownerId, Long id);
 
-    //Collection<Item> getUserItems(Long ownerId);
-
     Page<Item> getUserItems(Long ownerId, Integer from, Integer size);
 
     Item get(Long id);
 
     void delete(Long ownerId, Long id);
-
-    //Collection<Item> findByText(Long userId, String text);
 
     Page<Item> findByText(Long userId, String text, Integer from, Integer size);
 
