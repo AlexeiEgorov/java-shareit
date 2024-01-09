@@ -10,7 +10,6 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.State;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
@@ -31,7 +30,7 @@ public class BookingController {
 
     @PatchMapping("/{bookingId}")
     public ResponseEntity<Object> approve(@RequestHeader(USER_ID_REQ_HEADER) Long userId, @PathVariable Long bookingId,
-                                          @RequestParam @NotNull Boolean approved) {
+                                          @RequestParam Boolean approved) {
         return client.approve(userId, bookingId, approved);
     }
 
@@ -56,7 +55,8 @@ public class BookingController {
 
     @GetMapping("/owner")
     public ResponseEntity<Object> getUserOwnItemsBookings(@RequestHeader(USER_ID_REQ_HEADER) Long userId,
-                                                                  @RequestParam(defaultValue = "ALL") String state,
+                                                                  @RequestParam(defaultValue = "ALL")
+                                                                      String state,
                                                                   @RequestParam(defaultValue = "0")
                                                                       @PositiveOrZero Integer from,
                                                                   @RequestParam(defaultValue = "10")
