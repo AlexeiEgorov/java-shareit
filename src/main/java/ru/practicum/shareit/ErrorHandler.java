@@ -16,6 +16,7 @@ import ru.practicum.shareit.model.Violation;
 
 import javax.validation.ConstraintViolationException;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.Constants.*;
@@ -65,14 +66,9 @@ public class ErrorHandler {
 
         } else if (e instanceof MethodArgumentTypeMismatchException) {
             MethodArgumentTypeMismatchException exp = (MethodArgumentTypeMismatchException) e;
-            try {
-                String[] className = exp.getRootCause().getMessage().split("\\.");
-                if (className[className.length - 2].equalsIgnoreCase(STATE)) {
-                    return new ErrorResponse("Unknown state: " + className[className.length - 1], exp.getMessage());
-                }
-            } catch (NullPointerException ex) {
-                return new ErrorResponse(exp.toString(), "возникла непредвиденная ошибка ограничения " +
-                        "переданного параметра");
+            String[] className = Objects.requireNonNull(exp.getRootCause()).getMessage().split("\\.");
+            if (className[className.length - 2].equalsIgnoreCase(STATE)) {
+                return new ErrorResponse("Unknown state: " + className[className.length - 1], exp.getMessage());
             }
         }
         return new ErrorResponse(e.toString(), "возникла непредвиденная ошибка ограничения " +
@@ -96,6 +92,9 @@ public class ErrorHandler {
         } else if (NO_ACCESS.equals(e.getEntityClass())) {
             return new ErrorResponse(String.format("id - (%s)", e.getValue()),
                     "Доступ к предмету с данным id, недоступен");
+        } else if (REQUEST.equals(e.getEntityClass())) {
+            return new ErrorResponse(String.format("id - (%s)", e.getValue()),
+                    "Запрос с данным id, не зарегестрирован");
         }
         return new ErrorResponse((String.format("объект (%s); значение (%s)", e.getEntityClass(), e.getValue())),
                 "неизвестная ошибка");

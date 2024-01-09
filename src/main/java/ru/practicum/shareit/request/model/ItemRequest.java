@@ -1,28 +1,30 @@
-package ru.practicum.shareit.item.model;
+package ru.practicum.shareit.request.model;
 
 import lombok.*;
-import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.util.List;
 
-@Getter
 @Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Entity
-@Table(name = "items")
+@Table(name = "requests")
 @EqualsAndHashCode
-public class Item {
+public class ItemRequest {
     @Id
     @Access(AccessType.PROPERTY)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
     private String description;
-    private Boolean available;
     @ManyToOne(fetch = FetchType.LAZY)
-    private User owner;
-    @ManyToOne(fetch = FetchType.LAZY)
-    private ItemRequest request;
+    private User requester;
+    private LocalDateTime created;
+    @Transient
+    private List<Item> items;
 }
