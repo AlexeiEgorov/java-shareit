@@ -4,13 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.EntityNotFoundException;
-import ru.practicum.shareit.user.dto.BookerDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.Collection;
-import java.util.Set;
 
 import static ru.practicum.shareit.Constants.USER;
 
@@ -54,10 +52,5 @@ public class UserServiceImpl implements UserService {
     public void delete(Long id) {
         get(id);
         repository.deleteById(id);
-    }
-
-    @Override
-    public Collection<BookerDto> findBookers(Set<Long> usersIds) {
-        return repository.findAllByIdIn(usersIds);
     }
 }

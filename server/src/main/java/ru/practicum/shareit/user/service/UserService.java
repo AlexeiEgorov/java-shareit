@@ -1,11 +1,9 @@
 package ru.practicum.shareit.user.service;
 
-import ru.practicum.shareit.user.dto.BookerDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.Collection;
-import java.util.Set;
 
 public interface UserService {
 
@@ -18,6 +16,4 @@ public interface UserService {
     User get(Long id);
 
     void delete(Long id);
-
-    Collection<BookerDto> findBookers(Set<Long> usersIds);
 }
