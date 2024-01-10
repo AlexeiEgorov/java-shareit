@@ -9,7 +9,6 @@ public class Constants {
     public static final String REQUEST = "Request";
     public static final String NO_ACCESS = "No-access";
     public static final String USER_ID_REQ_HEADER = "X-Sharer-User-Id";
-    public static final String STATE = "state";
     public static final String SORT_START_PARAM = "start";
 
     public static final String SORT_CREATED_PARAM = "created";
